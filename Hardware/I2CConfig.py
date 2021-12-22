@@ -10,10 +10,10 @@ import platform
 
 machine_version = platform.machine()
 if (machine_version == "armv7l") or (machine_version == "armv7") :
-        BCM2708_PERI_BASE=0x20000000
+    BCM2708_PERI_BASE=0x20000000
 
 if machine_version == "aarch64" :
-        BCM2708_PERI_BASE=0xFE000000
+    BCM2708_PERI_BASE=0xFE000000
 
 GPIO_BASE=(BCM2708_PERI_BASE + 0x00200000)
 BLOCK_SIZE=4096
