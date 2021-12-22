@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """IRModuleExample1, program to practice using the IRModule
 
 Created July 30, 2020"""

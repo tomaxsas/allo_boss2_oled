@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #
 #   Enable I2C on P1 and P5 (Rev 2 boards only)
@@ -51,7 +51,7 @@ def i2cConfig():
     m0 = 0b00000000000000000000111111111111
     s0 = 0b00000000000000000000100100000000
     b0 = reg0 & m0
-    if b0 <> s0:
+    if b0 != s0:
         print("reg0 I2C configuration not correct. Updating.")
         reg0 = (reg0 & ~m0) | s0
         m.seek(0)
@@ -61,7 +61,7 @@ def i2cConfig():
     m2 = 0b00111111000000000000000000000000
     s2 = 0b00100100000000000000000000000000
     b2 = reg2 & m2
-    if b2 <> s2:
+    if b2 != s2:
         print( "reg2 I2C configuration not correct. Updating.")
         reg2 = (reg2 & ~m2) | s2
         m.seek(8)

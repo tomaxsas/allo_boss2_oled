@@ -12,36 +12,36 @@ import os
 
 """
   Class SH1106LCD()
-  
+
   Interface to the SH1106 LCD that will be displaying the current
   gear selection.  The SH1106 LCD is a 132x64 pixel OLED display.
   Data is displayed on the LCD by alterting the data in the Display
   Data RAM.  The RAM contains a set of bits that correspond to the
-  individual pixels of the LCD display. It holds the data in pages 
-  and columns.  Their are 8 pages, each representing 8 rows (making up 
+  individual pixels of the LCD display. It holds the data in pages
+  and columns.  Their are 8 pages, each representing 8 rows (making up
   the 64 bit height).  There are 132 columns in each page.  Each page
   is stored as a set of 132 bytes.  The 8 bits of each byte represent
   one of the 8 rows in that page as shown below. The least significant
   bit (D0) represents the top-most row of the page.  The most
   significant bit (D7) represents the bottom-most row of the page.
- 
-  Changes to the Display Data RAM are immediately reflected on the 
+
+  Changes to the Display Data RAM are immediately reflected on the
   actual LCD.  When writing bytes to the RAM, the column position is
   automatically incremented with each byte allowing continuous writing
   to memory. The cursor can also be manually set to any position in RAM.
- 
+
      | Col 0 | Col 1 | Col 2 | ... | Col 131 |
    ---------------------------------------------------
-     |  D0   |  D0   |               
+     |  D0   |  D0   |
    P |  D1   |  D1   |
    A |  D2   |  D2   |
    G |  D3   |  D3   |
    E |  D4   |  D4   |
      |  D5   |  D5   |
-   0 |  D6   |  D6   | 
+   0 |  D6   |  D6   |
      |  D7   |  D7   |
    ----------------------------------------------------
-     |  D0   |   
+     |  D0   |
    P |  D1   |
    A |  D2   |
    G |  D3   |
@@ -50,7 +50,7 @@ import os
    1 |  D6   |
      |  D7   |
    ----------------------------------------------------
- 
+
 """
 class SH1106LCD():
 
@@ -60,14 +60,14 @@ class SH1106LCD():
         self.OLED_Address = 0x3c
         self.OLED_Command_Mode = 0x80
         self.OLED_Data_Mode = 0x40
-        
+
         #Initialize the screen.
         self.__initialize()
         self.clearScreen()
-        
+
         #Set up internal image buffer
         self.imageBuffer = {}
-        
+
         #Import font
         self.font = capFont
         self.font1 = capFont1
@@ -77,7 +77,7 @@ class SH1106LCD():
 
     """
      initialize()
-     
+
      Initilizes the LCD.  Values are taken from the SH1106 datasheet.
     """
     def __initialize(self):
@@ -117,7 +117,7 @@ class SH1106LCD():
 
     """
      powerUp()
-     
+
       Turns on the lighting of the LCD.  Will display whatever
       is in the Display Data Ram.  Display Data Ram can be
       altered while the LCD is powered down.
@@ -127,7 +127,7 @@ class SH1106LCD():
 
     """
      powerDown()
-     
+
       Turns of the lighting of the LCD.  LCD will retain
       whatever is in the Display Data Ram.
     """
@@ -154,7 +154,7 @@ class SH1106LCD():
 
     """
      clearScreen()
-     
+
       Writes 0x00 to every address in the Display Data Ram
       effectively making the screen completely black.
       Should be called on first connection of the LCD as
@@ -168,10 +168,10 @@ class SH1106LCD():
 
     """
      setCursorPosition(row,col)
-     
+
          row - The row to place the cursor on (0 - 7)
          col - The column to place the cursor on (0 - 31)
-     
+
     """
     def setCursorPosition(self, row, col):
         #Set row
@@ -195,9 +195,9 @@ class SH1106LCD():
 
     """
      __sendCommand(command)
-     
+
      	command - Hex data to send to the OLED as a command
-     
+
      Used to send data to the OLED that should be interpreted as a command, and not display data.
      Commands are used to control the functions/configuration of the OLED.
      This method sends the control byte with the D/C Bit set LOW to tell the OLED that the next
@@ -217,7 +217,7 @@ class SH1106LCD():
 
     """
      __sendDataByte(dataByte)
-     
+
      	dataByte - Single byte of data (in hex) to send to the OLED as display data.
 
     Sends a single display data byte to the Display Data RAM.
@@ -239,7 +239,7 @@ class SH1106LCD():
 
     """
     __sendData(data)
-     
+
         data - Bytestream to send to the Display Data RAM.
     """
     def __sendData(self, data):
@@ -265,7 +265,7 @@ class SH1106LCD():
 
     """
     def chunks(self, l, chunkSize):
-        for i in xrange(0, len(l), chunkSize):
+        for i in range(0, len(l), chunkSize):
             yield l[i:i+chunkSize]
 
 
@@ -296,7 +296,7 @@ class SH1106LCD():
     """
     def displayBufferedImage(self, imageID, rowOffset, colOffset):
         try:
-            if imageID not in self.imageBuffer.keys():
+            if imageID not in self.imageBuffer:
                 raise ValueError(imageID + " not in the pre-processed image buffer.")
             else:
                 image = self.imageBuffer.get(imageID)
@@ -368,7 +368,7 @@ class SH1106LCD():
             fontIndex = ord(c) - 32
             self.__sendData(self.font1[fontIndex])
             self.__sendDataByte(0x00)
-    
+
     """
     centerString(inString, row)
 
@@ -449,7 +449,7 @@ class SH1106LCD():
 
 
     def __chunks(self, inList, chunkSize):
-        for i in xrange(0, len(inList), chunkSize):
+        for i in range(0, len(inList), chunkSize):
             yield inList[i:i+chunkSize]
 
 
@@ -461,9 +461,9 @@ class SH1106LCD():
 
     """
     Class LCDImage
-     
+
          filename - Bitmap file to parse
-     
+
       Takes a monochrome bitmap image and represents it in a form
       that is more easily displayed on the LCD.
     """
@@ -477,9 +477,9 @@ class SH1106LCD():
 
         """
          processPicture(filename)
-         
+
              filename - The bitmap file to import.
-         
+
           Imports a monocrhome bitmap file and converts it into a format
           that can be displayed on the LCD.  The black pixels of the
           bitmap will be read as "ON", and white as "OFF" effectively
@@ -487,7 +487,7 @@ class SH1106LCD():
           *The bitmap cannot be larger than 132 pixels wide or 64 pixels
            tall.
           *The bitmap's height must be divisible by 8.
-         
+
              Returns - a (list of lists) that can be passed into
                  the displayImage(filename)
         """
@@ -538,7 +538,7 @@ class SH1106LCD():
                     output.append(temp)
 
             except IOError as e:
-                print ("I/O error: Could no open file: " + filename)
+                print("I/O error: Could no open file: " + filename)
                 traceback.print_exc()
             except ValueError as e:
                 print ("Value Error: ")

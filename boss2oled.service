@@ -1,5 +1,5 @@
 [Unit]
-Description=OLED BOSS2 (DietPi)
+Description=OLED BOSS2
 After=syslog.target network.target sound.target
 
 [Service]
@@ -7,7 +7,7 @@ User=root
 Group=root
 
 Type=simple
-ExecStart=/usr/bin/python /opt/boss2_oled/boss2_oled.py
+ExecStart=/usr/bin/python3 /opt/boss2_oled/boss2_oled.py
 Restart=on-abort
 
 [Install]
