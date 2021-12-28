@@ -26,10 +26,11 @@ import RPi.GPIO as GPIO
 import time
 import sched
 import subprocess
-import atexit
 import alsaaudio
 import netifaces
 import socket
+import signal
+import sys
 from Hardware.SH1106.SH1106LCD import *
 from evdev import InputDevice, ecodes, list_devices
 from mpd import MPDClient
@@ -349,8 +350,6 @@ class OLED:
 
 
 lcd = OLED()
-atexit.register(lcd.oled.powerDown)
-atexit.register(GPIO.cleanup)
 
 
 def change_mute_status(mix: alsaaudio.Mixer):
@@ -658,6 +657,16 @@ def button_callback(channel):
         sw_left_callback()
     elif channel == sw_right:
         sw_right_callback()
+
+
+def cleanup(*args):
+    lcd.oled.powerDown()
+    GPIO.cleanup()
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, cleanup)
+signal.signal(signal.SIGTERM, cleanup)
 
 
 def main():
