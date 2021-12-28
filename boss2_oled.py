@@ -35,16 +35,14 @@ from evdev import InputDevice, ecodes, list_devices
 from mpd import MPDClient
 from enum import Enum
 
-sw1 = 8
-sw2 = 10
-sw3 = 16
-sw4 = 24
-sw5 = 18
-rst = 32
+sw_left = 8
+sw_ok = 10
+sw_up = 16
+sw_down = 24
+sw_right = 18
 
 m_indx = 1
 f_indx = 1
-scr_num = 0
 fil_sp = 0
 de_emp = 0
 non_os = 0
@@ -72,11 +70,6 @@ MPD_CLIENT.connect("localhost", 6600)
 
 filter_cur = 0
 filter_mod = 0
-bs1 = 0
-bs2 = 0
-bs3 = 0
-bs4 = 0
-bs5 = 0
 led_off_counter = 0
 
 
@@ -103,6 +96,9 @@ class SCREEN(Enum):
     PH = 9
 
 
+scr_num = SCREEN.MAIN
+
+
 class OLED:
     _h_name = "HOST:%s" % socket.gethostname()
 
@@ -118,11 +114,13 @@ class OLED:
         if self.current_screen != scr:
             self.oled.clearScreen()
         self.current_screen = scr
+        global scr_num
+        scr_num = scr
 
     def boot_screen(self):
+        self._check_screen(SCREEN.BOOT)
         if self.lcd_active:
             with self.t_lock:
-                current_scrren = SCREEN.BOOT
                 self.oled.clearScreen()
                 self.oled.displayString("BOSS2", 0, 0)
                 self.oled.displayStringNumber(ETH_IP, 2, 0)
@@ -142,7 +140,6 @@ class OLED:
 
     def mute_line(self):
         if self.current_screen == SCREEN.MAIN:
-
             with self.t_lock:
                 if get_mute_status(ma_ctrl) == 0:
                     self.oled.displayString("@", 3, 50)
@@ -170,17 +167,13 @@ class OLED:
                     self.oled.displayString(f"S{bit_rate} {bit_format}", 5, 5)
 
     def volume_screen(self):
-        self.current_screen = SCREEN.MAIN
-        with self.t_lock:
-            self.oled.clearScreen()
+        self._check_screen(SCREEN.MAIN)
         self.volume_line(None)
         self.mute_line()
         self.hw_line()
 
     def menu_screen(self):
-        if self.current_screen != SCREEN.MENU:
-            self.oled.clearScreen()
-        self.current_screen = SCREEN.MENU
+        self._check_screen(SCREEN.MENU)
         if m_indx == 1:
             self.oled.displayInvertedString("SYSINFO", 0, 0)
         else:
@@ -357,12 +350,7 @@ class OLED:
 
 lcd = OLED()
 atexit.register(lcd.oled.powerDown)
-atexit.register(GPIO.cleanup, sw1)
-atexit.register(GPIO.cleanup, sw2)
-atexit.register(GPIO.cleanup, sw3)
-atexit.register(GPIO.cleanup, sw3)
-atexit.register(GPIO.cleanup, sw4)
-atexit.register(GPIO.cleanup, sw5)
+atexit.register(GPIO.cleanup)
 
 
 def change_mute_status(mix: alsaaudio.Mixer):
@@ -424,11 +412,11 @@ def setFilterStatus():
 def init_gpio():
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(sw1, GPIO.IN)
-    GPIO.setup(sw2, GPIO.IN)
-    GPIO.setup(sw3, GPIO.IN)
-    GPIO.setup(sw4, GPIO.IN)
-    GPIO.setup(sw5, GPIO.IN)
+    GPIO.setup(sw_left, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(sw_ok, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(sw_up, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(sw_down, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(sw_right, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     time.sleep(0.1)
 
 
@@ -470,6 +458,208 @@ def remote_callback(ir_dev: InputDevice):
             led_off_counter = 0
 
 
+def sw_left_callback():
+    global hv_en
+    global fil_sp
+    global hp_fil
+    global non_os
+    global ph_comp
+    global de_emp
+    if scr_num == SCREEN.MAIN or scr_num == SCREEN.BOOT or scr_num == SCREEN.MENU:
+        lcd.volume_screen()
+    elif scr_num == SCREEN.FILTER:
+        lcd.menu_screen()
+    elif scr_num == SCREEN.HV:
+        if hv_en == 0:
+            hv_en = 1
+            lcd.hv_screen()
+    elif scr_num == SCREEN.SP:
+        if fil_sp == 0:
+            fil_sp = 1
+            lcd.sp_screen()
+    elif scr_num == SCREEN.HP:
+        if hp_fil == 0:
+            hp_fil = 1
+            lcd.hp_screen()
+    elif scr_num == SCREEN.DE:
+        if de_emp == 0:
+            de_emp = 1
+            lcd.de_screen()
+    elif scr_num == SCREEN.NON:
+        if non_os == 0:
+            non_os = 1
+            lcd.non_screen()
+    elif scr_num == SCREEN.PH:
+        if ph_comp == 0:
+            ph_comp = 1
+            lcd.ph_screen()
+    else:
+        print(scr_num)
+
+
+def sw_ok_callback():
+    global ok_flag
+    global filter_mod
+    if scr_num == SCREEN.MENU:
+        if m_indx == 1:
+            lcd.boot_screen()
+        elif m_indx == 2:
+            lcd.hv_screen()
+        elif m_indx == 3:
+            lcd.filter_screen()
+        elif m_indx == 4:
+            lcd.sp_screen()
+    elif scr_num == SCREEN.BOOT:
+        lcd.menu_screen()
+    elif scr_num == SCREEN.FILTER:
+        if f_indx == 1:
+            lcd.ph_screen()
+        elif f_indx == 2:
+            lcd.hp_screen()
+        elif f_indx == 3:
+            lcd.de_screen()
+        elif f_indx == 4:
+            lcd.non_screen()
+    elif scr_num == SCREEN.HV:
+        ok_flag = 0
+        if get_mute_status(hv_ctrl) != hv_en:
+            change_mute_status(hv_ctrl)
+        lcd.menu_screen()
+    elif scr_num == SCREEN.SP:
+        ok_flag = 0
+        getFilterStatus()
+        if filter_cur != fil_sp:
+            filter_mod = fil_sp
+            setFilterStatus()
+        lcd.menu_screen()
+    elif scr_num == SCREEN.HP:
+        ok_flag = 0
+        if get_mute_status(hp_ctrl) != hp_fil:
+            change_mute_status(hp_ctrl)
+        lcd.filter_screen()
+    elif scr_num == SCREEN.DE:
+        ok_flag = 0
+        if get_mute_status(de_ctrl) != de_emp:
+            change_mute_status(de_ctrl)
+        lcd.filter_screen()
+    elif scr_num == SCREEN.NON:
+        ok_flag = 0
+        if get_mute_status(non_ctrl) != non_os:
+            change_mute_status(non_ctrl)
+        lcd.filter_screen()
+    elif scr_num == SCREEN.PH:
+        ok_flag = 0
+        if get_mute_status(ph_ctrl) != ph_comp:
+            change_mute_status(ph_ctrl)
+        lcd.filter_screen()
+
+
+def sw_up_callback():
+    global m_indx
+    global f_indx
+    if scr_num == SCREEN.MENU:
+        if m_indx > 1:
+            m_indx -= 1
+        lcd.menu_screen()
+    elif scr_num == SCREEN.FILTER:
+        if f_indx > 1:
+            f_indx -= 1
+        lcd.filter_screen()
+
+
+def sw_down_callback():
+    global m_indx
+    global f_indx
+    global ok_flag
+
+    if scr_num == SCREEN.MENU:
+        m_indx += 1
+        if m_indx > 4:
+            m_indx = 1
+        lcd.menu_screen()
+    elif scr_num == SCREEN.FILTER:
+        f_indx += 1
+        if f_indx > 4:
+            f_indx = 1
+        lcd.filter_screen()
+    elif scr_num == SCREEN.HV:
+        if ok_flag == 0:
+            ok_flag = 1
+        lcd.hv_screen()
+    elif scr_num == SCREEN.SP:
+        if ok_flag == 0:
+            ok_flag = 1
+        lcd.sp_screen()
+    elif scr_num == SCREEN.HP:
+        if ok_flag == 0:
+            ok_flag = 1
+        lcd.hp_screen()
+    elif scr_num == SCREEN.DE:
+        if ok_flag == 0:
+            ok_flag = 1
+        lcd.de_screen()
+    elif scr_num == SCREEN.NON:
+        if ok_flag == 0:
+            ok_flag = 1
+        lcd.non_screen()
+    elif scr_num == SCREEN.PH:
+        if ok_flag == 0:
+            ok_flag = 1
+        lcd.ph_screen()
+
+
+def sw_right_callback():
+    global hv_en
+    global hp_fil
+    global de_emp
+    global non_os
+    global ph_comp
+    global fil_sp
+    if scr_num == SCREEN.MAIN or scr_num == SCREEN.BOOT:
+        lcd.menu_screen()
+    elif scr_num == SCREEN.MENU:
+        lcd.volume_screen()
+    elif scr_num == SCREEN.HV:
+        if hv_en == 1:
+            hv_en = 0
+        lcd.hv_screen()
+    elif scr_num == SCREEN.SP:
+        if fil_sp == 1:
+            fil_sp = 0
+        lcd.sp_screen()
+    elif scr_num == SCREEN.HP:
+        if hp_fil == 1:
+            hp_fil = 0
+        lcd.hp_screen()
+    elif scr_num == SCREEN.DE:
+        if de_emp == 1:
+            de_emp = 0
+        lcd.de_screen()
+    elif scr_num == SCREEN.NON:
+        if non_os == 1:
+            non_os = 0
+        lcd.non_screen()
+    elif scr_num == SCREEN.PH:
+        if ph_comp == 1:
+            ph_comp = 0
+        lcd.ph_screen()
+
+
+def button_callback(channel):
+    global led_off_counter
+    led_off_counter = 0
+    if channel == sw_down:
+        sw_down_callback()
+    elif channel == sw_up:
+        sw_up_callback()
+    elif channel == sw_ok:
+        sw_ok_callback()
+    elif channel == sw_left:
+        sw_left_callback()
+    elif channel == sw_right:
+        sw_right_callback()
+
+
 def main():
     global m_indx
     global scr_num
@@ -492,11 +682,6 @@ def main():
     global dig_ctrl
     global filter_cur
     global filter_mod
-    global bs1
-    global bs2
-    global bs3
-    global bs4
-    global bs5
     global led_off_counter
     led_off_counter = 1
     lcd.boot_screen()
@@ -553,218 +738,24 @@ def main():
     hw_up_thread.start()
 
     fil_sp = filter_cur
+
+    GPIO.add_event_detect(
+        sw_left, GPIO.FALLING, callback=button_callback, bouncetime=200
+    )
+    GPIO.add_event_detect(sw_ok, GPIO.FALLING, callback=button_callback, bouncetime=200)
+    GPIO.add_event_detect(sw_up, GPIO.FALLING, callback=button_callback, bouncetime=200)
+    GPIO.add_event_detect(
+        sw_down, GPIO.FALLING, callback=button_callback, bouncetime=200
+    )
+    GPIO.add_event_detect(
+        sw_right, GPIO.FALLING, callback=button_callback, bouncetime=200
+    )
     while True:
-        if led_off_counter >= 500:
+        if led_off_counter >= 30:
             lcd.oled.powerDown()
         elif led_off_counter == 1:
             lcd.oled.powerUp()
-
-        # GPIO buttons, replace with callbacks
-        if GPIO.input(sw1) == GPIO.HIGH:
-            time.sleep(0.04)
-        else:
-            time.sleep(0.04)
-            bs1 = 1
-            led_off_counter = 0
-        if GPIO.input(sw2) == GPIO.HIGH:
-            time.sleep(0.04)
-        else:
-            time.sleep(0.04)
-            bs2 = 1
-            led_off_counter = 0
-        if GPIO.input(sw3) == GPIO.HIGH:
-            time.sleep(0.04)
-        else:
-            time.sleep(0.04)
-            bs3 = 1
-            led_off_counter = 0
-        if GPIO.input(sw4) == GPIO.HIGH:
-            time.sleep(0.04)
-        else:
-            time.sleep(0.04)
-            bs4 = 1
-            led_off_counter = 0
-        if GPIO.input(sw5) == GPIO.HIGH:
-            time.sleep(0.04)
-        else:
-            time.sleep(0.04)
-            bs5 = 1
-            led_off_counter = 0
-
-        # Buttons callback
-        if bs1 == 1:
-            time.sleep(0.1)
-            bs1 = 0
-            if scr_num in [0, 2, 3]:
-                lcd.menu_screen()
-            elif scr_num == 1:
-                lcd.volume_screen()
-            elif scr_num == 4:
-                if hv_en == 0:
-                    hv_en = 1
-                    lcd.hv_screen()
-            elif scr_num == 5:
-                if fil_sp == 0:
-                    fil_sp = 1
-                    lcd.sp_screen()
-            elif scr_num == 6:
-                if hp_fil == 0:
-                    hp_fil = 1
-                    lcd.hp_screen()
-            elif scr_num == 7:
-                if de_emp == 0:
-                    de_emp = 1
-                    lcd.de_screen()
-            elif scr_num == 8:
-                if non_os == 0:
-                    non_os = 1
-                    lcd.non_screen()
-            elif scr_num == 9:
-                if ph_comp == 0:
-                    ph_comp = 1
-                    lcd.ph_screen()
-            else:
-                print(scr_num)
-
-        if bs2 == 1:
-            time.sleep(0.1)
-            bs2 = 0
-            if scr_num == 1:
-                if m_indx == 1:
-                    lcd.boot_screen()
-                elif m_indx == 2:
-                    lcd.hv_screen()
-                elif m_indx == 3:
-                    lcd.filter_screen()
-                elif m_indx == 4:
-                    lcd.sp_screen()
-            elif scr_num == 2:
-                lcd.menu_screen()
-            elif scr_num == 3:
-                if f_indx == 1:
-                    lcd.ph_screen()
-                elif f_indx == 2:
-                    lcd.hp_screen()
-                elif f_indx == 3:
-                    lcd.de_screen()
-                elif f_indx == 4:
-                    lcd.non_screen()
-
-            elif scr_num == 4:
-                ok_flag = 0
-                if get_mute_status(hv_ctrl) != hv_en:
-                    change_mute_status(hv_ctrl)
-                lcd.menu_screen()
-            elif scr_num == 5:
-                ok_flag = 0
-                getFilterStatus()
-                if filter_cur != fil_sp:
-                    filter_mod = fil_sp
-                    setFilterStatus()
-                lcd.menu_screen()
-            elif scr_num == 6:
-                ok_flag = 0
-                if get_mute_status(hp_ctrl) != hp_fil:
-                    change_mute_status(hp_ctrl)
-                lcd.filter_screen()
-            elif scr_num == 7:
-                ok_flag = 0
-                if get_mute_status(de_ctrl) != de_emp:
-                    change_mute_status(de_ctrl)
-                lcd.filter_screen()
-            elif scr_num == 8:
-                ok_flag = 0
-                if get_mute_status(non_ctrl) != non_os:
-                    change_mute_status(non_ctrl)
-                lcd.filter_screen()
-            elif scr_num == 9:
-                ok_flag = 0
-                if get_mute_status(ph_ctrl) != ph_comp:
-                    change_mute_status(ph_ctrl)
-                lcd.filter_screen()
-
-        if bs3 == 1:
-            time.sleep(0.1)
-            bs3 = 0
-            if scr_num == 1:
-                if m_indx > 1:
-                    m_indx -= 1
-                lcd.menu_screen()
-            elif scr_num == 3:
-                if f_indx > 1:
-                    f_indx -= 1
-                lcd.filter_screen()
-
-        if bs4 == 1:
-            time.sleep(0.1)
-            bs4 = 0
-            if scr_num == 1:
-                m_indx += 1
-                if m_indx > 4:
-                    m_indx = 1
-                lcd.menu_screen()
-            elif scr_num == 3:
-                f_indx += 1
-                if f_indx > 4:
-                    f_indx = 1
-                lcd.filter_screen()
-            elif scr_num == 4:
-                if ok_flag == 0:
-                    ok_flag = 1
-                lcd.hv_screen()
-            elif scr_num == 5:
-                if ok_flag == 0:
-                    ok_flag = 1
-                lcd.sp_screen()
-            elif scr_num == 6:
-                if ok_flag == 0:
-                    ok_flag = 1
-                lcd.hp_screen()
-
-            elif scr_num == 7:
-                if ok_flag == 0:
-                    ok_flag = 1
-                lcd.de_screen()
-            elif scr_num == 8:
-                if ok_flag == 0:
-                    ok_flag = 1
-                lcd.non_screen()
-            elif scr_num == 9:
-                if ok_flag == 0:
-                    ok_flag = 1
-                lcd.ph_screen()
-
-        if bs5 == 1:
-            time.sleep(0.1)
-            bs5 = 0
-            if scr_num in [0, 2, 3]:
-                lcd.menu_screen()
-            elif scr_num == 1:
-                lcd.volume_screen()
-            elif scr_num == 4:
-                if hv_en == 1:
-                    hv_en = 0
-                lcd.hv_screen()
-            elif scr_num == 5:
-                if fil_sp == 1:
-                    fil_sp = 0
-                lcd.sp_screen()
-            elif scr_num == 6:
-                if hp_fil == 1:
-                    hp_fil = 0
-                lcd.hp_screen()
-            elif scr_num == 7:
-                if de_emp == 1:
-                    de_emp = 0
-                lcd.de_screen()
-            elif scr_num == 8:
-                if non_os == 1:
-                    non_os = 0
-                lcd.non_screen()
-            elif scr_num == 9:
-                if ph_comp == 1:
-                    ph_comp = 0
-                lcd.ph_screen()
+        time.sleep(1)
         led_off_counter += 1
 
 
