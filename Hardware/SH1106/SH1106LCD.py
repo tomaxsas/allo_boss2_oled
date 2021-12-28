@@ -52,23 +52,24 @@ import os
    ----------------------------------------------------
 
 """
-class SH1106LCD():
 
+
+class SH1106LCD:
     def __init__(self):
-        #Default i2c bus
+        # Default i2c bus
         self.bus = smbus.SMBus(1)
-        self.OLED_Address = 0x3c
+        self.OLED_Address = 0x3C
         self.OLED_Command_Mode = 0x80
         self.OLED_Data_Mode = 0x40
 
-        #Initialize the screen.
+        # Initialize the screen.
         self.__initialize()
         self.clearScreen()
 
-        #Set up internal image buffer
+        # Set up internal image buffer
         self.imageBuffer = {}
 
-        #Import font
+        # Import font
         self.font = capFont
         self.font1 = capFont1
         self.fontLine1 = Line1
@@ -80,6 +81,7 @@ class SH1106LCD():
 
      Initilizes the LCD.  Values are taken from the SH1106 datasheet.
     """
+
     def __initialize(self):
         time.sleep(0.25)
         self.__sendCommand(0xAE)
@@ -122,6 +124,7 @@ class SH1106LCD():
       is in the Display Data Ram.  Display Data Ram can be
       altered while the LCD is powered down.
     """
+
     def powerUp(self):
         self.__sendCommand(0xAF)
 
@@ -131,8 +134,9 @@ class SH1106LCD():
       Turns of the lighting of the LCD.  LCD will retain
       whatever is in the Display Data Ram.
     """
+
     def powerDown(self):
-        self.__sendCommand(0xAE)	  #Power off display
+        self.__sendCommand(0xAE)  # Power off display
 
     """
     clearRow(row)
@@ -142,15 +146,50 @@ class SH1106LCD():
       Writes 0x00 to every address in Display Data Ram
       for a given row.  This will blank the row.
     """
+
     def clearRow(self, row):
         page = 0xB0 + row
         self.__sendCommand(page)
-        #Send 32 bytes at a time (max the bus can take) until we clear the first 128 columns.
+        # Send 32 bytes at a time (max the bus can take) until we clear the first 128 columns.
         for i in range(4):
-            self.__sendData([0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00])
-        #Send the last 4 bytes to zero out all 132 columns
-        self.__sendData([0x00,0x00,0x00,0x00])
+            self.__sendData(
+                [
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                ]
+            )
+        # Send the last 4 bytes to zero out all 132 columns
+        self.__sendData([0x00, 0x00, 0x00, 0x00])
 
     """
      clearScreen()
@@ -160,11 +199,12 @@ class SH1106LCD():
       Should be called on first connection of the LCD as
       when uninitialized the LCD will display random pixels.
     """
+
     def clearScreen(self):
         for i in range(8):
-                self.clearRow(i)
-                self.__sendCommand(0x00)	 #reset column address
-                self.__sendCommand(0x10)	 #reset column address
+            self.clearRow(i)
+            self.__sendCommand(0x00)  # reset column address
+            self.__sendCommand(0x10)  # reset column address
 
     """
      setCursorPosition(row,col)
@@ -173,25 +213,24 @@ class SH1106LCD():
          col - The column to place the cursor on (0 - 31)
 
     """
+
     def setCursorPosition(self, row, col):
-        #Set row
+        # Set row
         page = 0xB0 + row
         self.__sendCommand(page)
-        #For some reason, the LCD does not seem to be correctly set up to display on the first two collumn addresses.
-        #Therefor increase the column value by 2
+        # For some reason, the LCD does not seem to be correctly set up to display on the first two collumn addresses.
+        # Therefor increase the column value by 2
         col = col + 2
 
         # Calculate the command bytes to set the column address
         # Column Address Offset: A7 A6 A5 A4 A3 A2 A1 A0
         # Upper Address Nibble Command: 0 0 0 0 A3 A2 A1 A0
         # Lower Address Nibble Command: 0 0 0 1 A7 A6 A5 A4
-        lowerColumnOffsetByte = (col & 0x0F )
+        lowerColumnOffsetByte = col & 0x0F
         upperColumnOffsetByte = (col >> 4) + 0x10
-        #Set column
-        self.__sendCommand(upperColumnOffsetByte)	 #Upper 4 bits
-        self.__sendCommand(lowerColumnOffsetByte)    #Lower 4 bits
-
-
+        # Set column
+        self.__sendCommand(upperColumnOffsetByte)  # Upper 4 bits
+        self.__sendCommand(lowerColumnOffsetByte)  # Lower 4 bits
 
     """
      __sendCommand(command)
@@ -203,12 +242,15 @@ class SH1106LCD():
      This method sends the control byte with the D/C Bit set LOW to tell the OLED that the next
      data sent will be a command
     """
+
     def __sendCommand(self, command):
         retries = 10
         error = None
         while retries > 0:
             try:
-                self.bus.write_byte_data(self.OLED_Address, self.OLED_Command_Mode, command)
+                self.bus.write_byte_data(
+                    self.OLED_Address, self.OLED_Command_Mode, command
+                )
             except IOError as e:
                 error = e
                 retries -= 1
@@ -222,12 +264,15 @@ class SH1106LCD():
 
     Sends a single display data byte to the Display Data RAM.
     """
+
     def __sendDataByte(self, dataByte):
         retries = 10
         error = None
         while retries > 0:
             try:
-                self.bus.write_byte_data(self.OLED_Address, self.OLED_Data_Mode, dataByte)
+                self.bus.write_byte_data(
+                    self.OLED_Address, self.OLED_Data_Mode, dataByte
+                )
             except IOError as e:
                 error = e
                 retries -= 1
@@ -242,12 +287,15 @@ class SH1106LCD():
 
         data - Bytestream to send to the Display Data RAM.
     """
+
     def __sendData(self, data):
         retries = 10
         error = None
         while retries > 0:
             try:
-                self.bus.write_i2c_block_data(self.OLED_Address, self.OLED_Data_Mode, data)
+                self.bus.write_i2c_block_data(
+                    self.OLED_Address, self.OLED_Data_Mode, data
+                )
             except IOError as e:
                 error = e
                 retries -= 1
@@ -264,10 +312,10 @@ class SH1106LCD():
         chuckSize - Size of chunks in which to split array.
 
     """
+
     def chunks(self, l, chunkSize):
         for i in range(0, len(l), chunkSize):
-            yield l[i:i+chunkSize]
-
+            yield l[i : i + chunkSize]
 
     """
     addImage(imageID, filename)
@@ -279,10 +327,10 @@ class SH1106LCD():
     before storing it and avoids unnecessary processing each time you wish to display it.
 
     """
+
     def addImage(self, imageID, filename):
         processedImage = self.LCDImage(filename)
         self.imageBuffer[imageID] = processedImage
-
 
     """
     displayBufferedImage(imageID, row, col)
@@ -294,6 +342,7 @@ class SH1106LCD():
     Displays an image on the LCD that has already been pre-processed and placed into the
     internal buffer using the addImage method.
     """
+
     def displayBufferedImage(self, imageID, rowOffset, colOffset):
         try:
             if imageID not in self.imageBuffer:
@@ -303,14 +352,14 @@ class SH1106LCD():
             self.__displayProcessedImage(image, rowOffset, colOffset)
 
         except ValueError as e:
-            print ("Value Error: ")
+            print("Value Error: ")
             traceback.print_exc()
-
 
     """
     displayImage(filename)
 
     """
+
     def displayImage(self, filename, rowOffset, colOffset):
         processedImage = self.LCDImage(filename)
         self.__displayProcessedImage(processedImage, rowOffset, colOffset)
@@ -319,20 +368,21 @@ class SH1106LCD():
     displayString(inString, row, col)
 
     """
+
     def displayStringNumber(self, inString, row, col, wrap=None):
         if wrap is None:
             wrap = False
         displayStringNumber = inString
-        #Set the row/column position
+        # Set the row/column position
         self.setCursorPosition(row, col)
         for c in displayStringNumber:
-            #Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
+            # Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
             fontIndex = ord(c) - 32
             self.__sendData(self.fontNumber[fontIndex])
             self.__sendDataByte(0x00)
-        self.setCursorPosition(row+1, col)
+        self.setCursorPosition(row + 1, col)
         for c in displayStringNumber:
-            #Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
+            # Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
             fontIndex = ord(c) - 32
             self.__sendData(self.fontNumber1[fontIndex])
             self.__sendDataByte(0x00)
@@ -341,10 +391,10 @@ class SH1106LCD():
         if wrap is None:
             wrap = False
         displayStringLine1 = inString
-        #Set the row/column position
+        # Set the row/column position
         self.setCursorPosition(row, col)
         for c in displayStringLine1:
-            #Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
+            # Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
             fontIndex = ord(c) - 32
             self.__sendData(self.fontLine1[fontIndex])
             self.__sendDataByte(0x00)
@@ -352,19 +402,19 @@ class SH1106LCD():
     def displayString(self, inString, row, col, wrap=None):
         if wrap is None:
             wrap = False
-        #Convert string to all caps as lower case characters are not implemented in the font.
-        #displayString = str(inString).upper()
+        # Convert string to all caps as lower case characters are not implemented in the font.
+        # displayString = str(inString).upper()
         displayString = inString
-        #Set the row/column position
+        # Set the row/column position
         self.setCursorPosition(row, col)
         for c in displayString:
-            #Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
+            # Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
             fontIndex = ord(c) - 32
             self.__sendData(self.font[fontIndex])
             self.__sendDataByte(0x00)
-        self.setCursorPosition(row+1, col)
+        self.setCursorPosition(row + 1, col)
         for c in displayString:
-            #Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
+            # Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
             fontIndex = ord(c) - 32
             self.__sendData(self.font1[fontIndex])
             self.__sendDataByte(0x00)
@@ -373,40 +423,42 @@ class SH1106LCD():
     centerString(inString, row)
 
     """
+
     def centerString(self, inString, row):
         inString = str(inString)
         if len(inString) > 21:
             return
-        startPosition = (131 - (6*len(inString)))/2
+        startPosition = 60 - (3 * len(inString))
         self.displayString(inString, row, startPosition)
 
     """
     displayInvertedString(inString, row, col)
 
     """
+
     def displayInvertedString(self, inString, row, col):
-        #Convert string to all caps as lower case characters are not implemented in the font.
-        #displayString = str(inString).upper()
+        # Convert string to all caps as lower case characters are not implemented in the font.
+        # displayString = str(inString).upper()
         displayString = inString
-        #Set the row/column position
+        # Set the row/column position
         self.setCursorPosition(row, col)
         for c in displayString:
-            #Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
+            # Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
             fontIndex = ord(c) - 32
             bytestream = self.font[fontIndex]
             for b in bytestream:
-                #invert the byte and send it
-                self.__sendDataByte(b ^ 0xff)
-            self.__sendDataByte(0xff)
-        self.setCursorPosition(row+1, col)
+                # invert the byte and send it
+                self.__sendDataByte(b ^ 0xFF)
+            self.__sendDataByte(0xFF)
+        self.setCursorPosition(row + 1, col)
         for c in displayString:
-            #Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
+            # Get the ascii value and then subtract 32 as the font does not have any characters before the 32nd implemented.
             fontIndex = ord(c) - 32
             bytestream = self.font1[fontIndex]
             for b in bytestream:
-                #invert the byte and send it
-                self.__sendDataByte(b ^ 0xff)
-            self.__sendDataByte(0xff)
+                # invert the byte and send it
+                self.__sendDataByte(b ^ 0xFF)
+            self.__sendDataByte(0xFF)
 
     """
     __displayProcessedImage(self, processedImage, row, col)
@@ -418,25 +470,32 @@ class SH1106LCD():
     Takes an image that has already been processed and displays it on the LCD.  The upper left corner
     of the picture starts at the coordinates indicated by row and col.
     """
+
     def __displayProcessedImage(self, processedImage, row, col):
         try:
-            #Ensure the picture will fit with the given column and row starting points.
-            if (processedImage.width + col > 132) or (processedImage.height/8 + row > 8):
-                raise ValueError("Picture is too large to fit on the screen with the supplied row/column: Width "
-                                 + str(processedImage.width) + ", Height " + str(processedImage.height))
-            #Get the raw data from the processed image
+            # Ensure the picture will fit with the given column and row starting points.
+            if (processedImage.width + col > 132) or (
+                processedImage.height / 8 + row > 8
+            ):
+                raise ValueError(
+                    "Picture is too large to fit on the screen with the supplied row/column: Width "
+                    + str(processedImage.width)
+                    + ", Height "
+                    + str(processedImage.height)
+                )
+            # Get the raw data from the processed image
             imageData = processedImage.data
 
-            #Display the image
+            # Display the image
             for i in range(row, 8):
                 self.setCursorPosition(row, col)
                 # Set column
                 page = 0xB0 + i
                 self.__sendCommand(page)
-                #The i2c bus can only take a maximum of 32 bytes of data at a time.  If the image is more than 32 pixels
+                # The i2c bus can only take a maximum of 32 bytes of data at a time.  If the image is more than 32 pixels
                 # wide we need to break it into chunks.
                 stream = imageData[i]
-                if(len(stream) > 32):
+                if len(stream) > 32:
                     splitStream = self.__chunks(list(stream), 32)
                     for chunk in splitStream:
                         self.__sendData(chunk)
@@ -444,20 +503,16 @@ class SH1106LCD():
                     self.__sendData(stream)
 
         except ValueError as e:
-            print ("Value Error: ")
+            print("Value Error: ")
             traceback.print_exc()
-
 
     def __chunks(self, inList, chunkSize):
         for i in range(0, len(inList), chunkSize):
-            yield inList[i:i+chunkSize]
+            yield inList[i : i + chunkSize]
 
-
-
-
-#==============================================================================================
-#        Internal Classes
-#==============================================================================================
+    # ==============================================================================================
+    #        Internal Classes
+    # ==============================================================================================
 
     """
     Class LCDImage
@@ -467,13 +522,12 @@ class SH1106LCD():
       Takes a monochrome bitmap image and represents it in a form
       that is more easily displayed on the LCD.
     """
-    class LCDImage():
 
+    class LCDImage:
         def __init__(self, filename):
             self.width = 0
             self.height = 0
             self.data = self.processPicture(filename)
-
 
         """
          processPicture(filename)
@@ -491,60 +545,61 @@ class SH1106LCD():
              Returns - a (list of lists) that can be passed into
                  the displayImage(filename)
         """
+
         def processPicture(self, filename):
             output = []
             try:
                 picture = Image.open(filename)
                 width, height = picture.size
-                #Ensure image file will fit within the limits of the LCD
-                if(width>132 or height>64):
-                    raise ValueError("Picture is larger than the allowable 132x64 pixels.")
+                # Ensure image file will fit within the limits of the LCD
+                if width > 132 or height > 64:
+                    raise ValueError(
+                        "Picture is larger than the allowable 132x64 pixels."
+                    )
 
-                #Ensure image file height is divisible by 8
-                #TODO - Should probably just change logic below to properly handle this case.  Don't need it for now.
-                if(height % 8 != 0):
+                # Ensure image file height is divisible by 8
+                # TODO - Should probably just change logic below to properly handle this case.  Don't need it for now.
+                if height % 8 != 0:
                     raise ValueError("Picture height is not divisible by 8.")
 
-                #Properly set the width/height class variables
+                # Properly set the width/height class variables
                 self.width = width
                 self.height = height
 
-                #Read in the picture as a bitstream.
+                # Read in the picture as a bitstream.
                 bits = list(picture.getdata())
 
-                #Convert stream of pixels to width x height array
+                # Convert stream of pixels to width x height array
                 matrix = []
                 for i in range(height):
                     temp = []
                     for j in range(width):
-                        temp.append(bits[i*width + j])
+                        temp.append(bits[i * width + j])
                     matrix.append(temp)
 
-                #Convert width x height array to
+                # Convert width x height array to
 
-
-                for i in range(height/8):
+                for i in range(height / 8):
                     temp = []
                     for j in range(width):
-                        bit0 = (matrix[i*8][j] / 255)
-                        bit1 = 2 * (matrix[i*8 + 1][j] / 255)
-                        bit2 = 4 * (matrix[i*8 + 2][j] / 255)
-                        bit3 = 8 * (matrix[i*8 + 3][j] / 255)
-                        bit4 = 16 * (matrix[i*8 + 4][j] / 255)
-                        bit5 = 32 * (matrix[i*8 + 5][j] / 255)
-                        bit6 = 64 * (matrix[i*8 + 6][j] / 255)
-                        bit7 = 128 * (matrix[i*8 + 7][j] / 255)
-                        temp.append(bit0 + bit1 + bit2 + bit3 + bit4 + bit5 + bit6 + bit7)
+                        bit0 = matrix[i * 8][j] / 255
+                        bit1 = 2 * (matrix[i * 8 + 1][j] / 255)
+                        bit2 = 4 * (matrix[i * 8 + 2][j] / 255)
+                        bit3 = 8 * (matrix[i * 8 + 3][j] / 255)
+                        bit4 = 16 * (matrix[i * 8 + 4][j] / 255)
+                        bit5 = 32 * (matrix[i * 8 + 5][j] / 255)
+                        bit6 = 64 * (matrix[i * 8 + 6][j] / 255)
+                        bit7 = 128 * (matrix[i * 8 + 7][j] / 255)
+                        temp.append(
+                            bit0 + bit1 + bit2 + bit3 + bit4 + bit5 + bit6 + bit7
+                        )
                     output.append(temp)
 
             except IOError as e:
                 print("I/O error: Could no open file: " + filename)
                 traceback.print_exc()
             except ValueError as e:
-                print ("Value Error: ")
+                print("Value Error: ")
                 traceback.print_exc()
 
             return output
-
-
-

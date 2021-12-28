@@ -1,0 +1,12 @@
+[[protocols]]
+name = "allo_boss2_remote"
+protocol = "nec"
+variant = "nec"
+[protocols.scancodes]
+0x30ee09 = "KEY_LEFT"
+0x30ee0c = "KEY_OK"
+0x30ee08 = "KEY_RIGHT"
+0x30ee04 = "KEY_VOLUMEUP"
+0x30ee05 = "KEY_VOLUMEDOWN"
+0x30ee01 = "KEY_PLAY"
+0x30ee02 = "KEY_MUTE"
