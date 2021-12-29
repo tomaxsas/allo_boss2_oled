@@ -21,20 +21,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-import threading
-import RPi.GPIO as GPIO
-import time
 import sched
+import signal
+import socket
 import subprocess
+import sys
+import threading
+import time
+from enum import Enum
+
 import alsaaudio
 import netifaces
-import socket
-import signal
-import sys
-from Hardware.SH1106.SH1106LCD import *
+import RPi.GPIO as GPIO
 from evdev import InputDevice, ecodes, list_devices
 from mpd import MPDClient
-from enum import Enum
+
+from Hardware.SH1106.SH1106LCD import *
 
 sw_left = 8
 sw_ok = 10
@@ -101,7 +103,7 @@ scr_num = SCREEN.MAIN
 
 
 class OLED:
-    _h_name = "HOST:%s" % socket.gethostname()
+    _h_name = f"HOST: {socket.gethostname()}"
 
     def __init__(self):
         self.oled = SH1106LCD()
@@ -384,7 +386,7 @@ def getCardNumber():
 
 def getFilterStatus():
     global filter_cur
-    cmd = "amixer -c " + card_num + " get 'PCM Filter Speed' | grep Item0 "
+    cmd = f"amixer -c {card_num} get 'PCM Filter Speed' | grep Item0"
     proc = subprocess.Popen(
         cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )

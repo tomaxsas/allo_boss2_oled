@@ -1,4 +1,4 @@
-# BOSS2 oled and IR control
+# BOSS2 OLED and IR control
 
 Took original Python 2 code. Rewrote most of it.
 IR is now controlled by kernel and accessed from python via evdev package.
@@ -10,11 +10,11 @@ IR is now controlled by kernel and accessed from python via evdev package.
 - Volume settings
 - Filter settings
 - RMS voltage control
-- Remotecontrol oncly controls volume, play/pause, mpd next, previous. No OK buton functionality
-- Butttons near OLED only controls system settings, OLED screens.
-
+- Remote control only controls volume, play/pause, mpd next, previous. No OK button functionality
+- Buttons near OLED only controls system settings, OLED screens.
 
 Tested on Below OS Images:
+
 - Moode
 
 Check these?
@@ -32,10 +32,8 @@ roPieee, roPieee XL ,Moode , Dietpi , Volumio, Max2play
 
 ## Installation
 
-- install provded devian package
+- install provided debian package
 - reboot
-
-
 
 ## TODO
 
