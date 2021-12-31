@@ -7,7 +7,6 @@ from .Line1SH1106FontLib import *
 from .SH1106FontLib1 import *
 from .SH1106FontLibNumbers import *
 from .SH1106FontLibNumbers1 import *
-import os
 
 
 """

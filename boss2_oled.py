@@ -31,18 +31,19 @@ import time
 from enum import Enum
 
 import alsaaudio
+import gpiozero
 import netifaces
-import RPi.GPIO as GPIO
 from evdev import InputDevice, ecodes, list_devices
-from mpd import MPDClient
+from persistent_mpd import PersistentMPDClient
 
 from Hardware.SH1106.SH1106LCD import *
 
-sw_left = 8
-sw_ok = 10
-sw_up = 16
-sw_down = 24
-sw_right = 18
+# Use BCM pin numbeirng scheme
+sw_left = 14
+sw_ok = 15
+sw_up = 23
+sw_down = 8
+sw_right = 24
 
 m_indx = 1
 f_indx = 1
@@ -66,7 +67,7 @@ ma_ctrl: alsaaudio.Mixer
 dig_csudotrl: alsaaudio.Mixer
 
 # connect to MPD
-MPD_CLIENT = MPDClient()
+MPD_CLIENT = PersistentMPDClient()
 MPD_CLIENT.timeout = 3
 MPD_CLIENT.idletimeout = 3
 MPD_CLIENT.connect("localhost", 6600)
@@ -410,17 +411,6 @@ def setFilterStatus():
     proc.communicate()
 
 
-def init_gpio():
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(sw_left, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(sw_ok, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(sw_up, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(sw_down, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(sw_right, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    time.sleep(0.1)
-
-
 def remote_callback(ir_dev: InputDevice):
     global led_off_counter
     PRESS_HOLD_EVENTS = [1, 2]
@@ -441,7 +431,10 @@ def remote_callback(ir_dev: InputDevice):
                 change_mute_status(dig_ctrl)
                 lcd.mute_line()
             elif event.code == ecodes.KEY_PLAY:
-                MPD_CLIENT.pause()
+                try:
+                    MPD_CLIENT.pause()
+                except:
+                    pass
             elif event.code == ecodes.KEY_OK:
                 pass
             elif event.code == ecodes.KEY_VOLUMEUP:
@@ -646,24 +639,23 @@ def sw_right_callback():
         lcd.ph_screen()
 
 
-def button_callback(channel):
+def button_callback(btn: gpiozero.Button):
     global led_off_counter
     led_off_counter = 0
-    if channel == sw_down:
+    if btn.pin == sw_down:
         sw_down_callback()
-    elif channel == sw_up:
+    elif btn.pin == sw_up:
         sw_up_callback()
-    elif channel == sw_ok:
+    elif btn.pin == sw_ok:
         sw_ok_callback()
-    elif channel == sw_left:
+    elif btn.pin == sw_left:
         sw_left_callback()
-    elif channel == sw_right:
+    elif btn.pin == sw_right:
         sw_right_callback()
 
 
 def cleanup(*args):
     lcd.oled.powerDown()
-    GPIO.cleanup()
     sys.exit(0)
 
 
@@ -714,7 +706,6 @@ def main():
     dig_ctrl = alsaaudio.Mixer(control="Digital")
 
     time.sleep(0.04)
-    init_gpio()
 
     # setup IR receiver
     devices = [InputDevice(path) for path in list_devices()]
@@ -750,17 +741,15 @@ def main():
 
     fil_sp = filter_cur
 
-    GPIO.add_event_detect(
-        sw_left, GPIO.FALLING, callback=button_callback, bouncetime=200
-    )
-    GPIO.add_event_detect(sw_ok, GPIO.FALLING, callback=button_callback, bouncetime=200)
-    GPIO.add_event_detect(sw_up, GPIO.FALLING, callback=button_callback, bouncetime=200)
-    GPIO.add_event_detect(
-        sw_down, GPIO.FALLING, callback=button_callback, bouncetime=200
-    )
-    GPIO.add_event_detect(
-        sw_right, GPIO.FALLING, callback=button_callback, bouncetime=200
-    )
+    btn_left = gpiozero.Button(pin=sw_left, bounce_time=200)
+    btn_left.when_pressed = button_callback
+    btn_right = gpiozero.Button(pin=sw_right, bounce_time=200)
+    btn_right.when_pressed = button_callback
+    btn_up = gpiozero.Button(pin=sw_up, bounce_time=200)
+    btn_up.when_pressed = button_callback
+    btn_down = gpiozero.Button(pin=sw_down, bounce_time=200)
+    btn_down.when_pressed = button_callback
+
     while True:
         if led_off_counter >= 30:
             lcd.oled.powerDown()

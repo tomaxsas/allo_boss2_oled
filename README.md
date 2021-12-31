@@ -28,7 +28,7 @@ roPieee, roPieee XL ,Moode , Dietpi , Volumio, Max2play
 - python3-netifaces
 - python3
 - ir-keytable
-- ?python3-wrapt
+- python3-gpiozero
 
 ## Installation
 
