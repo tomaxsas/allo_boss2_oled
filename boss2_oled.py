@@ -67,10 +67,10 @@ ma_ctrl: alsaaudio.Mixer
 dig_csudotrl: alsaaudio.Mixer
 
 # connect to MPD
-MPD_CLIENT = PersistentMPDClient()
+MPD_CLIENT = PersistentMPDClient(host="localhost", port=6600)
 MPD_CLIENT.timeout = 3
 MPD_CLIENT.idletimeout = 3
-MPD_CLIENT.connect("localhost", 6600)
+
 
 filter_cur = 0
 filter_mod = 0
