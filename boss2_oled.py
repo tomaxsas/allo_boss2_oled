@@ -660,6 +660,7 @@ def cleanup(*args):
 
 
 signal.signal(signal.SIGINT, cleanup)
+signal.signal(signal.SIGHUP, cleanup)
 signal.signal(signal.SIGTERM, cleanup)
 
 
