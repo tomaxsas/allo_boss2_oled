@@ -642,15 +642,16 @@ def sw_right_callback():
 def button_callback(btn: gpiozero.Button):
     global led_off_counter
     led_off_counter = 0
-    if btn.pin == sw_down:
+    pin_nr = btn.pin.number
+    if pin_nr == sw_down:
         sw_down_callback()
-    elif btn.pin == sw_up:
+    elif pin_nr == sw_up:
         sw_up_callback()
-    elif btn.pin == sw_ok:
+    elif pin_nr == sw_ok:
         sw_ok_callback()
-    elif btn.pin == sw_left:
+    elif pin_nr == sw_left:
         sw_left_callback()
-    elif btn.pin == sw_right:
+    elif pin_nr == sw_right:
         sw_right_callback()
 
 
