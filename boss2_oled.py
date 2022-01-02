@@ -718,7 +718,7 @@ def main():
             ir_device = InputDevice(device.path)
             break
     rem_control_thread = threading.Thread(
-        name="ir_control", target=remote_callback, kwargs={"ir_dev": ir_device}
+        name="ir_control", target=remote_callback, kwargs={"ir_dev": ir_device}, daemon=True
     )
     rem_control_thread.start()
 
@@ -738,7 +738,7 @@ def main():
         s.enter(5, 1, hw_updater, (sc,))
 
     s.enter(5, 1, hw_updater, (s,))
-    hw_up_thread = threading.Thread(name="hw_updater", target=s.run)
+    hw_up_thread = threading.Thread(name="hw_updater", target=s.run, daemon=True)
     hw_up_thread.start()
 
     fil_sp = filter_cur
