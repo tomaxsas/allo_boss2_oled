@@ -139,8 +139,8 @@ class OLED:
             else:
                 vol_list = volume
             with self.t_lock:
-                self.oled.displayString("              ", 1, 10)
-                self.oled.displayString(f"  Vol. {vol_list}", 1)
+                self.oled.displayString("              ", 1, 2)
+                self.oled.displayString(f"  Vol. {vol_list}", 1, 1)
 
     def mute_line(self):
         if self.current_screen == SCREEN.MAIN:
