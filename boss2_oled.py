@@ -137,10 +137,9 @@ class OLED:
                 vol_list = ma_ctrl.getvolume()[0]
             else:
                 vol_list = volume
-            # TODO find a way to clear row without glitches
             with self.t_lock:
                 self.oled.displayString("              ", 1, 10)
-                self.oled.centerString(vol_list, 1)
+                self.oled.centerString(f"Vol.  {vol_list}", 1)
 
     def mute_line(self):
         if self.current_screen == SCREEN.MAIN:
@@ -167,8 +166,11 @@ class OLED:
                             rate_val = line.split(":")
                             bit_format = int(rate_val[1].strip().split()[0])
                 with self.t_lock:
-                    # TODO find a way to clear line
-                    self.oled.displayString(f"S{bit_rate} {bit_format}", 5, 5)
+                    self.oled.displayString(f"                  ", 5, 5)
+                    if bit_rate == "closed":
+                        self.oled.displayString(f"No stream", 5, 5)
+                    else:
+                        self.oled.displayString(f"S{bit_rate} {bit_format}", 5, 5)
 
     def volume_screen(self):
         self._check_screen(SCREEN.MAIN)
@@ -753,7 +755,7 @@ def main():
     btn_down.when_pressed = button_callback
 
     while True:
-        if led_off_counter >= 30:
+        if led_off_counter >= 50:
             lcd.oled.powerDown()
         elif led_off_counter == 1:
             lcd.oled.powerUp()
