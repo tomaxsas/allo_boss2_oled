@@ -111,6 +111,7 @@ class OLED:
         self.t_lock = threading.Lock()
         self.current_screen = SCREEN.MAIN
         self.lcd_active = True
+        self.current_hw_line = ''
         self.oled.powerUp()
         self.oled.clearScreen()
 
@@ -165,12 +166,15 @@ class OLED:
                         if line.startswith("rate:"):
                             rate_val = line.split(":")
                             bit_format = int(rate_val[1].strip().split()[0])
-                with self.t_lock:
-                    self.oled.displayString(f"                  ", 5, 5)
-                    if bit_rate == "closed":
-                        self.oled.displayString(f"No stream", 5, 5)
-                    else:
-                        self.oled.displayString(f"S{bit_rate} {bit_format}", 5, 5)
+                if bit_rate == "closed":
+                    hw_line = "No stream"
+                else:
+                    hw_line = f"S{bit_rate} {bit_format}"
+                if self.current_hw_line != hw_line:
+                    self.current_hw_line = hw_line
+                    with self.t_lock:
+                        self.oled.displayString(f"                  ", 5, 5)
+                        self.oled.displayString(hw_line, 5, 5)
 
     def volume_screen(self):
         self._check_screen(SCREEN.MAIN)
