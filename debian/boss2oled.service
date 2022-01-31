@@ -1,13 +1,14 @@
 [Unit]
 Description=OLED BOSS2
 After=syslog.target network.target sound.target
+Requires=irsetup.service
 
 [Service]
 User=root
 Group=root
 
 Type=simple
-ExecStart=/usr/bin/python3 /opt/boss2_oled/boss2_oled.py
+ExecStart=allo-boss2
 Restart=on-abort
 
 [Install]

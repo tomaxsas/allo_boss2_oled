@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+if [[ "$1" = configure ]]; then
+    if ! grep -q 'dtoverlay=gpio-ir,gpio_pin=16' /boot/config.txt; then
+        echo 'dtoverlay=gpio-ir,gpio_pin=16' >>/boot/config.txt
+    fi
+fi

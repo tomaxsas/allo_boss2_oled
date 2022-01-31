@@ -110,8 +110,7 @@ class OLED:
         self.oled = SH1106LCD()
         self.t_lock = threading.Lock()
         self.current_screen = SCREEN.MAIN
-        self.lcd_active = True
-        self.current_hw_line = ''
+        self.current_hw_line = ""
         self.oled.powerUp()
         self.oled.clearScreen()
 
@@ -124,13 +123,12 @@ class OLED:
 
     def boot_screen(self):
         self._check_screen(SCREEN.BOOT)
-        if self.lcd_active:
-            with self.t_lock:
-                self.oled.clearScreen()
-                self.oled.displayString("BOSS2", 0, 0)
-                self.oled.displayStringNumber(ETH_IP, 2, 0)
-                self.oled.displayString(self._h_name, 4, 0)
-                self.oled.displayStringNumber(WLAN_IP, 6, 0)
+        with self.t_lock:
+            self.oled.clearScreen()
+            self.oled.displayString("BOSS2", 0, 0)
+            self.oled.displayStringNumber(ETH_IP, 2, 0)
+            self.oled.displayString(self._h_name, 4, 0)
+            self.oled.displayStringNumber(WLAN_IP, 6, 0)
 
     def volume_line(self, volume):
         if self.current_screen == SCREEN.MAIN:
@@ -171,6 +169,8 @@ class OLED:
                 else:
                     hw_line = f"S{bit_rate} {bit_format}"
                 if self.current_hw_line != hw_line:
+                    global led_off_counter
+                    led_off_counter = 0
                     self.current_hw_line = hw_line
                     with self.t_lock:
                         self.oled.displayString(f"                  ", 5, 5)
@@ -724,7 +724,10 @@ def main():
             ir_device = InputDevice(device.path)
             break
     rem_control_thread = threading.Thread(
-        name="ir_control", target=remote_callback, kwargs={"ir_dev": ir_device}, daemon=True
+        name="ir_control",
+        target=remote_callback,
+        kwargs={"ir_dev": ir_device},
+        daemon=True,
     )
     rem_control_thread.start()
 
@@ -741,9 +744,9 @@ def main():
 
     def hw_updater(sc):
         lcd.hw_line()
-        s.enter(5, 1, hw_updater, (sc,))
+        s.enter(3, 1, hw_updater, (sc,))
 
-    s.enter(5, 1, hw_updater, (s,))
+    s.enter(3, 1, hw_updater, (s,))
     hw_up_thread = threading.Thread(name="hw_updater", target=s.run, daemon=True)
     hw_up_thread.start()
 

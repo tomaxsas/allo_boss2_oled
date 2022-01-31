@@ -1,0 +1,23 @@
+Source: allo-boss2
+Section: admin
+Priority: optional
+Maintainer: tomaxsas, <tomaxsas@gmail.com>
+Build-Depends:  debhelper-compat (= 12),
+                dh-python,
+                dh-systemd,
+                python3-all,
+                python3-setuptools,
+                systemd
+Standards-Version: 4.6.0.1
+
+Package: allo-boss2
+Architecture: all
+Depends:    python3,
+            python3-smbus,
+            python3-alsaaudio,
+            python3-evdev,
+            python3-netifaces,
+            python3,
+            ir-keytable,
+            python3-gpiozero
+Description: Simplified allo boss2 package

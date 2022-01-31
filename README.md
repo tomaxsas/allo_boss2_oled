@@ -6,19 +6,21 @@ IR is now controlled by kernel and accessed from python via evdev package.
 ## Features
 
 - Volume display (0-100)
-- Bit nad kHz display
+- Bit and kHz display
 - Volume settings
 - Filter settings
 - RMS voltage control
 - Remote control only controls volume, play/pause, mpd next, previous. No OK button functionality
-- Buttons near OLED only controls system settings, OLED screens.
+- Buttons near OLED controls system settings on OLED screens.
+- Remote controls play/pause, mute, next, previous and sound volume.
+- OLED turns of after 50s of incativity
 
 Tested on Below OS Images:
 
-- Moode
+- Moode 7
 
 Check these?
-roPieee, roPieee XL ,Moode , Dietpi , Volumio, Max2play
+roPieee, roPieee XL , Dietpi , Volumio, Max2play
 
 ## Requirements
 
@@ -37,8 +39,4 @@ roPieee, roPieee XL ,Moode , Dietpi , Volumio, Max2play
 
 ## TODO
 
-- add to /boot/config.txt: dtoverlay=gpio-ir,gpio_pin=16
-- make a deb pkg
-- location of toml: /etc/rc_keymaps/
-- add services, start irsetup on boot
 - fix alsa sound reset on boot

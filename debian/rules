@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+#export DH_VERBOSE = 1
+export PYBUILD_NAME = allo-boss2
+override_dh_installsystemd:
+	dh_installsystemd --name=irsetup --no-enable
+	dh_installsystemd --name=boss2oled --no-enable
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
