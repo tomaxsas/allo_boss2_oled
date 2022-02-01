@@ -4,12 +4,14 @@ on: workflow_dispatch
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     container: debian:buster
 
     steps:
-    - uses: actions/checkout@v2  
-     
-    - name: Run build
-      run: make build
+      - uses: actions/checkout@v2
+
+      - name: Install make
+        run: apt-get install make -y
+
+      - name: Run build
+        run: make build
