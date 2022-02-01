@@ -10,6 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Update APT repo
+        run: apt-get update
+
       - name: Install make
         run: apt-get install make -y
 
