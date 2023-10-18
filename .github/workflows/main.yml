@@ -5,10 +5,11 @@ on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: debian:bullseye
+    container: debian:bookworm
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Code checkout
+        uses: actions/checkout@v4
 
       - name: Update APT repo
         run: apt-get update
