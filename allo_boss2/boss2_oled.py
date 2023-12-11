@@ -1,8 +1,4 @@
 #!/usr/bin/python3
-"""IRModuleExample1, program to practice using the IRModule
-
-Created July 30, 2020"""
-
 """
 Copyright 2020 allo.com
 
@@ -38,7 +34,7 @@ from persistent_mpd import PersistentMPDClient
 
 from Hardware.SH1106.SH1106LCD import *
 
-# Use BCM pin numbeirng scheme
+# Use BCM pin numbering scheme
 sw_left = 14
 sw_ok = 15
 sw_up = 23
@@ -760,6 +756,8 @@ def main():
     btn_up.when_pressed = button_callback
     btn_down = gpiozero.Button(pin=sw_down, bounce_time=200)
     btn_down.when_pressed = button_callback
+    btn_ok = gpiozero.Button(pin=sw_ok, bounce_time=200)
+    btn_ok.when_pressed = button_callback
 
     while True:
         if led_off_counter >= 50:

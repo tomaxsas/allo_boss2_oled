@@ -2,13 +2,13 @@ Source: allo-boss2
 Section: admin
 Priority: optional
 Maintainer: tomaxsas, <tomaxsas@gmail.com>
-Build-Depends:  debhelper-compat (= 12),
+Build-Depends:  debhelper-compat (= 13),
                 dh-python,
                 dh-systemd,
                 python3-all,
                 python3-setuptools,
                 systemd
-Standards-Version: 4.6.0.1
+Standards-Version: 4.6.2.0
 
 Package: allo-boss2
 Architecture: all

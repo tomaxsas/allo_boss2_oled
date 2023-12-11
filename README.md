@@ -11,13 +11,12 @@ IR is now controlled by kernel and accessed from python via evdev package.
 - Filter settings
 - RMS voltage control
 - Remote control only controls volume, play/pause, mpd next, previous. No OK button functionality
-- Buttons near OLED controls system settings on OLED screens.
-- Remote controls play/pause, mute, next, previous and sound volume.
+- Buttons near OLED controls system settings.
 - OLED turns of after 50s of incativity
 
 Tested on Below OS Images:
 
-- Moode 7
+- Moode 8
 
 Check these?
 roPieee, roPieee XL , Dietpi , Volumio, Max2play
