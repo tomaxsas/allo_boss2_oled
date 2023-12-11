@@ -39,4 +39,8 @@ To fix sound state between reboot enable alsa-state:
 ```bash
 sudo touch /etc/alsa/state-daemon.conf
 sudo systemctl start alsa-state
-``````
+```
+
+## Fine tuning
+
+Noticed that pipewire and wayland (GUI) services uses a lot of CPU when remote control is used. Disable those if not using.
