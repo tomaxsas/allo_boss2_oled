@@ -26,12 +26,16 @@ import threading
 import time
 from enum import Enum
 
-import gpiozero
 import netifaces
 from evdev import InputDevice, ecodes, list_devices
+from gpiozero import Button, Device
+from gpiozero.pins.rpigpio import RPiGPIOFactory
 from Hardware.SH1106.SH1106LCD import SH1106LCD
 from persistent_mpd import PersistentMPDClient
 from pyalsa import alsacard, alsamixer
+
+# Force to use RPi pin factory
+Device.pin_factory = RPiGPIOFactory()
 
 
 # Use BCM pin numbering scheme
@@ -66,6 +70,14 @@ class SCREEN(Enum):
     PH = 9
 
 
+def db_show_vol(vol_db):
+    if vol_db % 100 == 0:
+        vol_list = int(vol_db / 100)
+    else:
+        vol_list = vol_db / 100
+    return vol_list
+
+
 class SOUND_CTRL:
     def __init__(self):
         self.card_num = self.getCardNumber()
@@ -98,6 +110,7 @@ class SOUND_CTRL:
         mute_status = mix.get_switch(0, False)
         mix.set_switch_all(not mute_status)
 
+    # Return True for unmute False for mute
     def get_mute_status(self, mix: alsamixer.Element) -> bool:
         mute_status = mix.get_switch(0, False)
         return mute_status
@@ -109,11 +122,6 @@ class SOUND_CTRL:
                 return sound_card
         print("no boss2 card detected")
         exit(0)
-
-    def get_volume_dB(self) -> float:
-        curr_vol = self.ma_ctrl.get_volume()
-        curr_vol_dB = self.ma_ctrl.ask_volume_dB(curr_vol)
-        return curr_vol_dB
 
     # Return True for speed False for slow
     def getFilterStatus(self) -> bool:
@@ -182,13 +190,9 @@ class OLED:
     def volume_line(self, volume=None):
         if self.current_screen == SCREEN.MAIN:
             if volume is None:
-                vol_db = self.snd_ctrl.get_volume_dB()
-                if vol_db % 100 == 0:
-                    vol_list = int(vol_db / 100)
-                else:
-                    vol_list = vol_db / 100
-            else:
-                vol_list = volume
+                self.snd_ctrl.mixer.handle_events()
+                volume = self.snd_ctrl.ma_ctrl.get_volume()
+            vol_list = db_show_vol(self.snd_ctrl.ma_ctrl.ask_volume_dB(volume))
             with self.t_lock:
                 self.oled.displayString("     ", 1, 2)
                 self.oled.displayString(f"  {vol_list}".ljust(8, " ") + "dB", 1, 1)
@@ -197,9 +201,9 @@ class OLED:
         if self.current_screen == SCREEN.MAIN:
             with self.t_lock:
                 if self.snd_ctrl.get_mute_status(self.snd_ctrl.ma_ctrl):
-                    self.oled.displayString("@", 3, 50)
-                else:
                     self.oled.displayString("  ", 3, 50)
+                else:
+                    self.oled.displayString("@", 3, 50)
 
     def hw_line(self):
         bit_rate = "closed"
@@ -572,7 +576,7 @@ class OLED:
                 self.ph_comp = False
             self.ph_screen()
 
-    def button_callback(self, btn: gpiozero.Button):
+    def button_callback(self, btn: Button):
         self.led_off_counter = 0
         pin_nr = SW_PIN(btn.pin.number)
         if pin_nr == SW_PIN.DOWN:
@@ -600,13 +604,17 @@ def main():
     signal.signal(signal.SIGHUP, cleanup)
     signal.signal(signal.SIGTERM, cleanup)
 
-    # connect to MPD
-    mpd_client = PersistentMPDClient(host="localhost", port=6600)
-    mpd_client.timeout = 3
-    mpd_client.idletimeout = 3
+    try:
+        # connect to MPD
+        mpd_client = PersistentMPDClient(host="localhost", port=6600)
+        mpd_client.timeout = 3
+        mpd_client.idletimeout = 3
+    except Exception as e:
+        print(f"Where were error during MPD connection: {e}")
 
     def remote_callback(ir_dev: InputDevice):
         PRESS_HOLD_EVENTS = [1, 2]
+        curr_vol = sound_ctrl.ma_ctrl.get_volume()
         for event in ir_dev.read_loop():
             if event.type == ecodes.EV_KEY and event.value in PRESS_HOLD_EVENTS:
                 if event.code == ecodes.KEY_RIGHT:
@@ -631,17 +639,16 @@ def main():
                 elif event.code == ecodes.KEY_OK:
                     pass
                 elif event.code == ecodes.KEY_VOLUMEUP:
-                    curr_vol = sound_ctrl.ma_ctrl.get_volume()
                     if curr_vol < 200:
                         new_vol = curr_vol + 2
                     else:
                         new_vol = curr_vol + 1
                     new_vol = min(new_vol, 255)
+                    curr_vol = new_vol
                     sound_ctrl.dig_ctrl.set_volume_all(new_vol)
                     sound_ctrl.ma_ctrl.set_volume_all(new_vol)
-                    lcd.volume_line()
+                    lcd.volume_line(new_vol)
                 elif event.code == ecodes.KEY_VOLUMEDOWN:
-                    curr_vol = sound_ctrl.ma_ctrl.get_volume()
                     if curr_vol < 200:
                         new_vol = curr_vol - 2
                     else:
@@ -650,9 +657,10 @@ def main():
                         new_vol,
                         0,
                     )
+                    curr_vol = new_vol
                     sound_ctrl.dig_ctrl.set_volume_all(new_vol)
                     sound_ctrl.ma_ctrl.set_volume_all(new_vol)
-                    lcd.volume_line()
+                    lcd.volume_line(new_vol)
                 else:
                     pass
                 lcd.led_off_counter = 0
@@ -693,15 +701,15 @@ def main():
     hw_up_thread = threading.Thread(name="hw_updater", target=s.run, daemon=True)
     hw_up_thread.start()
 
-    btn_left = gpiozero.Button(pin=SW_PIN.LEFT.value, bounce_time=0.05)
+    btn_left = Button(pin=SW_PIN.LEFT.value, bounce_time=0.05)
     btn_left.when_pressed = lcd.button_callback
-    btn_right = gpiozero.Button(pin=SW_PIN.RIGHT.value, bounce_time=0.05)
+    btn_right = Button(pin=SW_PIN.RIGHT.value, bounce_time=0.05)
     btn_right.when_pressed = lcd.button_callback
-    btn_up = gpiozero.Button(pin=SW_PIN.UP.value, bounce_time=0.05)
+    btn_up = Button(pin=SW_PIN.UP.value, bounce_time=0.05)
     btn_up.when_pressed = lcd.button_callback
-    btn_down = gpiozero.Button(pin=SW_PIN.DOWN.value, bounce_time=0.05)
+    btn_down = Button(pin=SW_PIN.DOWN.value, bounce_time=0.05)
     btn_down.when_pressed = lcd.button_callback
-    btn_ok = gpiozero.Button(pin=SW_PIN.OK.value, bounce_time=0.05)
+    btn_ok = Button(pin=SW_PIN.OK.value, bounce_time=0.05)
     btn_ok.when_pressed = lcd.button_callback
 
     while True:

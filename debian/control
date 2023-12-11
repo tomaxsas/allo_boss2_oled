@@ -17,8 +17,8 @@ Depends:    python3,
             python3-evdev,
             python3-mpd,
             python3-netifaces,
+            python3-rpi.gpio
             python3,
-            mpd,
             ir-keytable,
             python3-gpiozero
 Description: Simplified allo boss2 package
