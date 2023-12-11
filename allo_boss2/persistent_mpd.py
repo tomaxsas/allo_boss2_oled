@@ -40,7 +40,7 @@ class PersistentMPDClient(mpd.MPDClient):
             try:
                 #                print("Attemping to ping...")
                 self.ping()
-            except (mpd.ConnectionError, OSError) as e:
+            except (mpd.ConnectionError, OSError):
                 #                print("lost connection.")
                 #                print("trying to reconnect.")
                 self.do_connect()
@@ -52,35 +52,25 @@ class PersistentMPDClient(mpd.MPDClient):
     def do_connect(self):
         try:
             try:
-                #                print("Attempting to disconnect.")
                 self.disconnect()
             # if it's a TCP connection, we'll get a socket error
             # if we try to disconnect when the connection is lost
-            except mpd.ConnectionError as e:
-                #                print("Disconnect failed, so what?")
+            except mpd.ConnectionError:
                 pass
             # if it's a socket connection, we'll get a BrokenPipeError
             # if we try to disconnect when the connection is lost
             # but we have to retry the disconnect, because we'll get
             # an "Already connected" error if we don't.
             # the second one should succeed.
-            except BrokenPipeError as e:
-                #                print("Pipe closed, retrying disconnect.")
+            except BrokenPipeError:
                 try:
-                    #                    print("Retrying disconnect.")
                     self.disconnect()
                 except Exception as e:
-                    print("Second disconnect failed, yikes.")
-                    print(e)
+                    print(f"Second disconnect failed, yikes. Error: ${e}")
                     pass
             if self.socket:
-                #                print("Connecting to {}".format(self.socket))
                 self.connect(self.socket, None)
             else:
-                #                print("Connecting to {}:{}".format(self.host, self.port))
                 self.connect(self.host, self.port)
         except OSError as e:
-            print("Connection refused.")
-
-
-#            print(e)
+            print(f"Connection refused. Error: ${e}")

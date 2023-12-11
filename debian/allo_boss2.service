@@ -1,14 +1,15 @@
 [Unit]
 Description=OLED BOSS2
 After=syslog.target network.target sound.target
-Requires=irsetup.service
 
 [Service]
 User=root
 Group=root
 
 Type=simple
-ExecStart=allo-boss2
+ExecStartPre=dtoverlay gpio-ir gpio_pin=16
+ExecStart=allo_boss2
+ExecStopPost=dtoverlay -r gpio-ir
 Restart=on-abort
 
 [Install]

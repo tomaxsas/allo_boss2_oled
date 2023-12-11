@@ -7,18 +7,13 @@ fi
 # Automatically added by dh_installsystemd/12.1.1
 if [ "$1" = "remove" ]; then
     if [ -x "/usr/bin/deb-systemd-helper" ]; then
-        deb-systemd-helper mask 'boss2oled.service' >/dev/null || true
-        deb-systemd-helper mask 'irsetup.service' >/dev/null || true
+        deb-systemd-helper mask 'allo_boss2.service' >/dev/null || true
     fi
 fi
 
 if [ "$1" = "purge" ]; then
     if [ -x "/usr/bin/deb-systemd-helper" ]; then
-        deb-systemd-helper purge 'boss2oled.service' >/dev/null || true
-        deb-systemd-helper unmask 'boss2oled.service' >/dev/null || true
-        deb-systemd-helper purge 'irsetup.service' >/dev/null || true
-        deb-systemd-helper unmask 'irsetup.service' >/dev/null || true
-
-        sed '|dtoverlay=gpio-ir,gpio_pin=16|d' /boot/config.txt
+        deb-systemd-helper purge 'allo_boss2.service' >/dev/null || true
+        deb-systemd-helper unmask 'allo_boss2.service' >/dev/null || true
     fi
 fi

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 if [[ "$1" = configure ]]; then
-    if ! grep -q 'dtoverlay=gpio-ir,gpio_pin=16' /boot/config.txt; then
-        echo 'dtoverlay=gpio-ir,gpio_pin=16' >>/boot/config.txt
+    if ! grep -q 'gpio_ir_recv   rc-rc6-mce            allo_boss2_remote.toml' /etc/rc_maps.cfg; then
+        echo 'gpio_ir_recv   rc-rc6-mce            allo_boss2_remote.toml' >>/etc/rc_maps.cfg
     fi
 fi
