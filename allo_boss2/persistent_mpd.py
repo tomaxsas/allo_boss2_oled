@@ -66,11 +66,11 @@ class PersistentMPDClient(mpd.MPDClient):
                 try:
                     self.disconnect()
                 except Exception as e:
-                    print(f"Second disconnect failed, yikes. Error: ${e}")
+                    print(f"Second disconnect failed, yikes. Error: {e}")
                     pass
             if self.socket:
                 self.connect(self.socket, None)
             else:
                 self.connect(self.host, self.port)
         except OSError as e:
-            print(f"Connection refused. Error: ${e}")
+            print(f"Connection refused. Error: {e}")
