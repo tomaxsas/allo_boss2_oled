@@ -38,7 +38,5 @@ To fix sound state between reboot enable alsa-state:
 
 ```bash
 sudo touch /etc/alsa/state-daemon.conf
-sudo alsactl store
-sudo systemctl enable --now alsa-state
-sudo systemctl enable --now alsa-restore
+sudo systemctl start alsa-state
 ``````
