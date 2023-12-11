@@ -19,3 +19,9 @@ jobs:
 
       - name: Run build
         run: make build
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: boss2.deb
+          path: build/*.deb
