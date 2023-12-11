@@ -24,18 +24,21 @@ roPieee, roPieee XL , Dietpi , Volumio, Max2play
 ## Requirements
 
 - python3-smbus
-- python3-alsaaudio
+- python3-pyalsa
 - python3-evdev
 - python3-netifaces
 - python3
 - ir-keytable
 - python3-gpiozero
+- mpd
 
 ## Installation
 
 - install provided debian package
 - reboot
 
+To fix sound state between reboot enable alsa-state: `sudo systemctl enable --now alsa-state`
+
 ## TODO
 
-- fix alsa sound reset on boot
+- Fix CPU usage
