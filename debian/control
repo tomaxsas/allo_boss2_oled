@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: tomaxsas, <tomaxsas@gmail.com>
 Build-Depends:  debhelper-compat (= 13),
                 dh-python,
-                dh-systemd,
                 python3-all,
                 python3-setuptools,
                 systemd
