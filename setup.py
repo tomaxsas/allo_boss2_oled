@@ -23,7 +23,7 @@ config = {
     "version": VERSION,
     "license": "MIT",
     "entry_points": {"console_scripts": ["allo_boss2=allo_boss2.boss2_oled:main"]},
-    "packages": ["allo_boss2", "allo_boss2.Hardware.SH1106"],
+    "packages": ["allo_boss2", "allo_boss2.Hardware", "allo_boss2.Hardware.SH1106"],
     "data_files": [
         ("/etc/rc_keymaps/", ["allo_boss2_remote.toml"]),
     ],

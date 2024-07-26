@@ -30,8 +30,8 @@ import netifaces
 from evdev import InputDevice, ecodes, list_devices
 from gpiozero import Button, Device
 from gpiozero.pins.rpigpio import RPiGPIOFactory
-from Hardware.SH1106.SH1106LCD import SH1106LCD
-from persistent_mpd import PersistentMPDClient
+from allo_boss2.Hardware.SH1106.SH1106LCD import SH1106LCD
+from allo_boss2.persistent_mpd import PersistentMPDClient
 from pyalsa import alsacard, alsamixer
 
 # Force to use RPi pin factory
