@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 try:
     VERSION = os.environ["VERSION"]
 except KeyError:
-    VERSION = "0.1.0"
+    VERSION = "0.1.1"
 
 BUILD_NUMBER = "1"
 try:
@@ -23,7 +23,7 @@ config = {
     "version": VERSION,
     "license": "MIT",
     "entry_points": {"console_scripts": ["allo_boss2=allo_boss2.boss2_oled:main"]},
-    "packages": find_packages(exclude=["test"]),
+    "packages": ["allo_boss2", "allo_boss2.Hardware.SH1106"],
     "data_files": [
         ("/etc/rc_keymaps/", ["allo_boss2_remote.toml"]),
     ],

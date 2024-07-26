@@ -1,3 +1,10 @@
+allo-boss2 (0.1.1-1) unstable; urgency=medium
+
+  * Include python packages
+  * Add setup instructions for moOde 9
+
+ -- tomaxsas <tomaxsas@gmail.com>  Tue, 11 Dec 2023 09:21:18 +0100
+
 allo-boss2 (0.1.0-1) unstable; urgency=medium
 
   * Initial release

@@ -41,6 +41,19 @@ sudo touch /etc/alsa/state-daemon.conf
 sudo systemctl start alsa-state
 ```
 
+### Setup on moOde 9
+
+After installation on moOde 9 and reboot, SSH to to it and run these commands:
+
+```bash
+# Stops existing service
+sudo systemctl stop boss2oled.service
+# Makes that service cannot be started
+sudo systemctl mask boss2oled.service
+# Starts new service
+sudo systemctl enable --now allo_boss2.service
+```
+
 ## Fine tuning
 
 Noticed that pipewire and wayland (GUI) services uses a lot of CPU when remote control is used. Disable those if not using.
