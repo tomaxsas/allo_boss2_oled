@@ -21,7 +21,7 @@ config = {
     "author": "tomaxsas",
     "author_email": "tomaxsas@gmail.com",
     "version": VERSION,
-    "license": "MIT",
+    "license": "GPL v3.0",
     "entry_points": {"console_scripts": ["allo_boss2=allo_boss2.boss2_oled:main"]},
     "packages": ["allo_boss2", "allo_boss2.Hardware", "allo_boss2.Hardware.SH1106"],
     "data_files": [

@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 """
+SPDX-License-Identifier: GPL-3.0-or-later
+Copyright 2024 tomaxsas@gmail.com
+
 Copyright 2020 allo.com
 
 This program is free software: you can redistribute it and/or modify
