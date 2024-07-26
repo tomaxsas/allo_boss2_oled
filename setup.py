@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 try:
     VERSION = os.environ["VERSION"]
 except KeyError:
-    VERSION = "0.1.1"
+    VERSION = "0.1.2"
 
 BUILD_NUMBER = "1"
 try:

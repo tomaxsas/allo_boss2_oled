@@ -194,7 +194,6 @@ class OLED:
                 volume = self.snd_ctrl.ma_ctrl.get_volume()
             vol_list = db_show_vol(self.snd_ctrl.ma_ctrl.ask_volume_dB(volume))
             with self.t_lock:
-                self.oled.displayString("     ", 1, 2)
                 self.oled.displayString(f"  {vol_list}".ljust(8, " ") + "dB", 1, 1)
 
     def mute_line(self):
@@ -639,7 +638,9 @@ def main():
                 elif event.code == ecodes.KEY_OK:
                     pass
                 elif event.code == ecodes.KEY_VOLUMEUP:
-                    if curr_vol < 200:
+                    if curr_vol < 140:
+                        new_vol = curr_vol + 4
+                    elif curr_vol < 220:
                         new_vol = curr_vol + 2
                     else:
                         new_vol = curr_vol + 1
@@ -649,7 +650,9 @@ def main():
                     sound_ctrl.ma_ctrl.set_volume_all(new_vol)
                     lcd.volume_line(new_vol)
                 elif event.code == ecodes.KEY_VOLUMEDOWN:
-                    if curr_vol < 200:
+                    if curr_vol < 140:
+                        new_vol = curr_vol - 4
+                    elif curr_vol < 220:
                         new_vol = curr_vol - 2
                     else:
                         new_vol = curr_vol - 1
