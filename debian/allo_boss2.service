@@ -1,6 +1,6 @@
 [Unit]
 Description=OLED BOSS2
-After=syslog.target network.target sound.target
+After=syslog.target network.target sound.target mpd.service
 
 [Service]
 User=root
